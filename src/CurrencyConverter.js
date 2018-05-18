@@ -106,8 +106,8 @@ export default class CurrencyConverter extends Component {
       symbolToConvertTo: '$',
       defaultCurrencyBase: 'EUR',
       defaultCurrencyToConvertTo: 'USD',
-      inputCurrency: '',
-      outputCurrency: '',
+      inputCurrency: '?',
+      outputCurrency: '?',
       rate: 0,
       value: '0',
     }
@@ -171,12 +171,7 @@ export default class CurrencyConverter extends Component {
   }
 
   updateValue(value) {
-    let newValue = value.toLocaleString("en-US"[this.state.defaultCurrencyBase] );
-
-    var l = value.toString().length-3;
-    var v = value/Math.pow(10, l);
-     console.log(v);
-
+    let newValue = value.toLocaleString("en-US"[this.state.defaultCurrencyBase]);
 
     this.setState({ value: newValue })
   }
