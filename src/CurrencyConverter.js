@@ -15,21 +15,9 @@ return (
 class CurrencyForm extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      symbolData: []
-    }
     this.handleClick = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleCurrencyChange = this.handleCurrencyChange.bind(this)
-  }
-
-  componentWillMount() {
-    fetch('https://gist.githubusercontent.com/mddenton/062fa4caf150bdf845994fc7a3533f74/raw/27beff3509eff0d2690e593336179d4ccda530c2/Common-Currency.json')
-      .then(currencyData => currencyData.json())
-      .then(currencyData => {
-        this.setState({ symbolOneData: currencyData })
-      })
-      .catch(err => console.log('Error in component will mount form', err))
   }
 
   handleClick(e) {
@@ -43,32 +31,22 @@ class CurrencyForm extends Component {
   handleCurrencyChange(e) {
     let value = e.target.value
 
-    let symbolData = this.state.symbolOneData[value];
-
     this.props.onCurrencyChange(value, this.props.position);
 
-    if (this.props.getSymbolBaseData) {
-      this.props.getSymbolBaseData(symbolData);
-    }
-
-    if (this.props.getSymbolToConvertToData) {
-      this.props.getSymbolToConvertToData(symbolData)
-    }
   }
 
   render() {
-		const { currencies, selected, value, symbol, focus } = this.props;
+		const { currencies, selected, value, focus } = this.props;
 
 		return(
       <div>
   			<fieldset>
   				<legend>{selected}</legend>
-          <label>{symbol}</label>
   				<input
             type={'text'}
             min={0}
             autoFocus={focus}
-            onFocus={this.value}
+            onFocus={() => this.value=';'}
   					value={value}
   					onChange={this.handleChange}
   					onClick={this.handleClick} />
@@ -101,8 +79,6 @@ export default class CurrencyConverter extends Component {
 
     this.state = {
       currencies: [],
-      symbolBase: '€',
-      symbolToConvertTo: '$',
       defaultCurrencyBase: 'EUR',
       defaultCurrencyToConvertTo: 'USD',
       inputCurrency: '?',
@@ -111,8 +87,6 @@ export default class CurrencyConverter extends Component {
       value: 0,
     }
     this.checkValidity = this.checkValidity.bind(this);
-    this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
-    this.getSymbolToConvertToData = this.getSymbolToConvertToData.bind(this);
     this.multiply = this.multiply.bind(this);
     this.updateConversion = this.updateConversion.bind(this);
     this.updateCurrency = this.updateCurrency.bind(this);
@@ -149,14 +123,6 @@ export default class CurrencyConverter extends Component {
     return formattedValue
   }
 
-  getSymbolBaseData(symbolData) {
-      this.setState({ symbolBase: symbolData.symbol })
-  }
-
-  getSymbolToConvertToData(symbolData) {
-      this.setState({ symbolToConvertTo: symbolData.symbol })
-  }
-
   multiply(variable, coefficient) {
     return ( Math.round( (variable * coefficient) * 1000000 ) / 1000000 ).toString();
   }
@@ -190,6 +156,7 @@ export default class CurrencyConverter extends Component {
       formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyBase }).format(floatValue));
     } else {
       formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyToConvertTo }).format(floatValue));
+
     }
 
     this.setState({ value: formattedValue })
@@ -211,7 +178,7 @@ export default class CurrencyConverter extends Component {
   }
 
   render() {
-    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
+    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value } = this.state
 
     const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate, 1);
     const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate, 2);
@@ -227,8 +194,6 @@ export default class CurrencyConverter extends Component {
   					onClick={this.updateConversion}
   					onChange={this.updateValue}
   					onCurrencyChange={this.updateCurrency}
-            getSymbolBaseData={this.getSymbolBaseData}
-            symbol={symbolBase}
             focus={true}
             />
 
@@ -240,8 +205,6 @@ export default class CurrencyConverter extends Component {
             onClick={this.updateConversion}
             onChange={this.updateValue}
             onCurrencyChange={this.updateCurrency}
-            getSymbolToConvertToData={this.getSymbolToConvertToData}
-            symbol={symbolToConvertTo}
             focus={false}
           />
 
