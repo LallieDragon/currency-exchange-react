@@ -65,8 +65,8 @@ class CurrencyForm extends Component {
   				<legend>{selected}</legend>
           <label>{symbol}</label>
   				<input
-            type={'number'}
-            step={100}
+            type={'text'}
+            placeholder={'0.0'}
             min={0}
             autoFocus={focus}
             onFocus={this.value}
@@ -112,6 +112,7 @@ export default class CurrencyConverter extends Component {
       value: '0',
     }
     this.checkValidity = this.checkValidity.bind(this);
+    this.getFormattedValue = this.getFormattedValue.bind(this)
     this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
     this.getSymbolToConvertToData = this.getSymbolToConvertToData.bind(this);
     this.multiply = this.multiply.bind(this);
@@ -137,6 +138,16 @@ export default class CurrencyConverter extends Component {
     const variable = parseFloat(value);
     const coefficient = parseFloat(rate);
     return this.multiply(variable, coefficient);
+  }
+
+  getFormattedValue(value) {
+    let newValue;
+    if (value > Math.floor(value)) {
+      newValue = Number(value).toLocaleString('en-US', {style: 'decimal', maximumFractionDigits : 2, minimumFractionDigits : 2 });
+    } else {
+      newValue = value;
+    }
+    return newValue;
   }
 
   getSymbolBaseData(symbolData) {
@@ -171,9 +182,10 @@ export default class CurrencyConverter extends Component {
   }
 
   updateValue(value) {
-    let newValue = value.toLocaleString("en-US"[this.state.defaultCurrencyBase]);
+    let test = this.getFormattedValue(value)
 
-    this.setState({ value: newValue })
+    console.log(test)
+    this.setState({ value: test })
   }
 
   updateCurrency(currency, position) {
@@ -195,10 +207,9 @@ export default class CurrencyConverter extends Component {
     const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
 
     console.log(symbolBase)
-    const newValue = value.replace(',', '.');
 
-    const valueOne = defaultCurrencyBase === inputCurrency ? newValue : this.checkValidity(value, rate);
-    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? newValue : this.checkValidity(value, rate);
+    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate);
+    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate);
 
     return (
       <div className='appContainer'>
@@ -229,7 +240,7 @@ export default class CurrencyConverter extends Component {
             focus={false}
           />
 
-          <section className='conversion-info'>
+        <section className='conversionInfo'>
             <p>Exchange Rate: {rate}</p>
           </section>
       </div>

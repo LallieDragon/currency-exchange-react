@@ -23,5 +23,9 @@ label {
 }
 
 fieldset {
-  width: 25vw;
+  width: 50vw;
+}
+
+input {
+  width: 10vw;
 }
