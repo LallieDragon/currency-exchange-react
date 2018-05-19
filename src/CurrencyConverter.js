@@ -37,7 +37,7 @@ class CurrencyForm extends Component {
   }
 
   handleChange(e) {
-    this.props.onChange(e.target.value);
+    this.props.onChange(e.target.value, this.props.position);
   }
 
   handleCurrencyChange(e) {
@@ -66,7 +66,6 @@ class CurrencyForm extends Component {
           <label>{symbol}</label>
   				<input
             type={'text'}
-            placeholder={'0.0'}
             min={0}
             autoFocus={focus}
             onFocus={this.value}
@@ -109,7 +108,7 @@ export default class CurrencyConverter extends Component {
       inputCurrency: '?',
       outputCurrency: '?',
       rate: 0,
-      value: '0',
+      value: 0,
     }
     this.checkValidity = this.checkValidity.bind(this);
     this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
@@ -134,9 +133,9 @@ export default class CurrencyConverter extends Component {
   }
 
   checkValidity(value, rate) {
-    const variable = parseFloat(value);
+    // const variable = parseFloat(value);
     const coefficient = parseFloat(rate);
-    return this.multiply(variable, coefficient);
+    return this.multiply(value, coefficient);
   }
 
   getSymbolBaseData(symbolData) {
@@ -148,7 +147,7 @@ export default class CurrencyConverter extends Component {
   }
 
   multiply(variable, coefficient) {
-    return ( Math.round( (variable * coefficient) * 1000000 ) / 1000000 ).toFixed(2).toString();
+    return ( Math.round( (variable * coefficient) * 1000000 ) / 1000000 ).toString();
   }
 
   updateConversion(inputCurrency, value) {
@@ -170,13 +169,19 @@ export default class CurrencyConverter extends Component {
     .catch(err => console.log('Error in updateConversion', err))
   }
 
-  updateValue(value) {
-    let newValue = parseFloat(value);
 
-    let updatedValue = newValue*(10**-2)
+  updateValue(value, position) {
+    let newValue = value.replace(/[^0-9.]/g, "");
+    let floatValue = parseFloat(newValue);
+    let formattedValue = '';
 
-    console.log(updatedValue)
-    this.setState({ value: value })
+    if (position === 1) {
+      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyBase }).format(floatValue));
+    } else {
+      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyToConvertTo }).format(floatValue));
+    }
+
+    this.setState({ value: formattedValue })
   }
 
   updateCurrency(currency, position) {
