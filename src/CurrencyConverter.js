@@ -112,7 +112,6 @@ export default class CurrencyConverter extends Component {
       value: '0',
     }
     this.checkValidity = this.checkValidity.bind(this);
-    this.getFormattedValue = this.getFormattedValue.bind(this)
     this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
     this.getSymbolToConvertToData = this.getSymbolToConvertToData.bind(this);
     this.multiply = this.multiply.bind(this);
@@ -138,16 +137,6 @@ export default class CurrencyConverter extends Component {
     const variable = parseFloat(value);
     const coefficient = parseFloat(rate);
     return this.multiply(variable, coefficient);
-  }
-
-  getFormattedValue(value) {
-    let newValue;
-    if (value > Math.floor(value)) {
-      newValue = Number(value).toLocaleString('en-US', {style: 'decimal', maximumFractionDigits : 2, minimumFractionDigits : 2 });
-    } else {
-      newValue = value;
-    }
-    return newValue;
   }
 
   getSymbolBaseData(symbolData) {
@@ -182,10 +171,12 @@ export default class CurrencyConverter extends Component {
   }
 
   updateValue(value) {
-    let test = this.getFormattedValue(value)
+    let newValue = parseFloat(value);
 
-    console.log(test)
-    this.setState({ value: test })
+    let updatedValue = newValue*(10**-2)
+
+    console.log(updatedValue)
+    this.setState({ value: value })
   }
 
   updateCurrency(currency, position) {
@@ -205,8 +196,6 @@ export default class CurrencyConverter extends Component {
 
   render() {
     const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
-
-    console.log(symbolBase)
 
     const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate);
     const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate);
