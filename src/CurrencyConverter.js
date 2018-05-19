@@ -132,10 +132,21 @@ export default class CurrencyConverter extends Component {
       .catch(err => console.log('Error in component will mount', err))
   }
 
-  checkValidity(value, rate) {
-    // const variable = parseFloat(value);
+  checkValidity(value, rate, position) {
+    let newValue = value.toString().replace(/[^0-9.]/g, "");
+
+    const variable = parseFloat(newValue);
     const coefficient = parseFloat(rate);
-    return this.multiply(value, coefficient);
+    let convertedValue = this.multiply(variable, coefficient);
+
+    let formattedValue = '';
+    if (position === 1) {
+      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyBase }).format(convertedValue));
+    } else {
+      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyToConvertTo }).format(convertedValue));
+    }
+
+    return formattedValue
   }
 
   getSymbolBaseData(symbolData) {
@@ -202,11 +213,11 @@ export default class CurrencyConverter extends Component {
   render() {
     const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
 
-    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate);
-    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate);
+    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate, 1);
+    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate, 2);
 
     return (
-      <div className='appContainer'>
+      <div className='currencyConverterContainer'>
          <Header headerText={'Currency Converter'}/>
          <CurrencyForm
   					position={1}
