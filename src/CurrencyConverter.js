@@ -15,9 +15,21 @@ return (
 class CurrencyForm extends Component {
   constructor(props) {
     super(props);
+		this.state = {
+			symbolOneData: ''
+		}
     this.handleClick = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleCurrencyChange = this.handleCurrencyChange.bind(this)
+  }
+
+	componentWillMount() {
+    fetch('https://gist.githubusercontent.com/mddenton/062fa4caf150bdf845994fc7a3533f74/raw/27beff3509eff0d2690e593336179d4ccda530c2/Common-Currency.json')
+      .then(currencyData => currencyData.json())
+      .then(currencyData => {
+        this.setState({ symbolOneData: currencyData })
+      })
+      .catch(err => console.log('Error in component will mount form', err))
   }
 
   handleClick(e) {
@@ -30,23 +42,32 @@ class CurrencyForm extends Component {
 
   handleCurrencyChange(e) {
     let value = e.target.value
+		let symbolData = this.state.symbolOneData[value];
 
     this.props.onCurrencyChange(value, this.props.position);
+
+		if (this.props.getSymbolBaseData) {
+      this.props.getSymbolBaseData(symbolData);
+    }
+
+    if (this.props.getSymbolToConvertToData) {
+      this.props.getSymbolToConvertToData(symbolData)
+    }
 
   }
 
   render() {
-		const { currencies, selected, value, focus } = this.props;
+		const { currencies, selected, value, focus, symbol } = this.props;
 
 		return(
       <div>
   			<fieldset>
   				<legend>{selected}</legend>
+					<label>{symbol}</label>
   				<input
-            type={'text'}
             min={0}
             autoFocus={focus}
-            onFocus={() => this.value=';'}
+            onFocus={this.value}
   					value={value}
   					onChange={this.handleChange}
   					onClick={this.handleClick} />
@@ -85,12 +106,19 @@ export default class CurrencyConverter extends Component {
       outputCurrency: '?',
       rate: 0,
       value: 0,
+			initialValue: '',
+			symbolBase: '€',
+			symbolToConvertTo: '$'
     }
-    this.checkValidity = this.checkValidity.bind(this);
+    this.check = this.check.bind(this);
+		this.format = this.format.bind(this);
+		this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
+		this.getSymbolToConvertToData = this.getSymbolToConvertToData.bind(this);
     this.multiply = this.multiply.bind(this);
     this.updateConversion = this.updateConversion.bind(this);
     this.updateCurrency = this.updateCurrency.bind(this);
     this.updateValue = this.updateValue.bind(this);
+		this.toFixed = this.toFixed.bind(this);
   }
 
   componentWillMount() {
@@ -106,22 +134,43 @@ export default class CurrencyConverter extends Component {
       .catch(err => console.log('Error in component will mount', err))
   }
 
-  checkValidity(value, rate, position) {
-    let newValue = value.toString().replace(/[^0-9.]/g, "");
+  check(value, rate) {
+		let input = this.format(value.toString());
 
-    const variable = parseFloat(newValue);
-    const coefficient = parseFloat(rate);
-    let convertedValue = this.multiply(variable, coefficient);
+		const variable = parseFloat(input);
+		const coefficient = parseFloat(rate);
 
-    let formattedValue = '';
-    if (position === 1) {
-      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyBase }).format(convertedValue));
-    } else {
-      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyToConvertTo }).format(convertedValue));
-    }
+		let convertedValue = parseFloat(this.multiply(variable, coefficient)).toFixed(2);
 
-    return formattedValue
+	  return convertedValue;
   }
+
+	format(value) {
+		let input = value.replace(/\D/g,'');
+		let splitInput = input.split();
+		let length = splitInput[0].length;
+
+		if(length === 0){
+						input = value.replace(/\D/g,'');
+		}else if(length < 3){
+						input = '.0' + input;
+		}else if(length === 3){
+						input = '.' + input;
+		}else if(length === 3){
+						input = input.substring(0, length - 1) + '.' + input.substring(length-1, length);
+		}else if (length > 3){
+			input = input.substring(0, length - 2) + '.' + input.substring(length-2, length);
+		}
+		return input;
+	}
+
+	getSymbolBaseData(symbolData) {
+		this.setState({ symbolBase: symbolData.symbol })
+	}
+
+	getSymbolToConvertToData(symbolData) {
+		this.setState({ symbolToConvertTo: symbolData.symbol })
+	}
 
   multiply(variable, coefficient) {
     return ( Math.round( (variable * coefficient) * 1000000 ) / 1000000 ).toString();
@@ -147,19 +196,10 @@ export default class CurrencyConverter extends Component {
   }
 
 
-  updateValue(value, position) {
-    let newValue = value.replace(/[^0-9.]/g, "");
-    let floatValue = parseFloat(newValue);
-    let formattedValue = '';
+  updateValue(value) {
+		let input = this.format(value);
 
-    if (position === 1) {
-      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyBase }).format(floatValue));
-    } else {
-      formattedValue = (new Intl.NumberFormat('en-US', { style: 'currency', currency: this.state.defaultCurrencyToConvertTo }).format(floatValue));
-
-    }
-
-    this.setState({ value: formattedValue })
+    this.setState({ value: input })
   }
 
   updateCurrency(currency, position) {
@@ -177,11 +217,18 @@ export default class CurrencyConverter extends Component {
     }
   }
 
-  render() {
-    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value } = this.state
+	toFixed(value, precision) {
+		var exponentialForm = this.unformat(value) + 'e' + precision;
+		var rounded = Math.round(exponentialForm);
+		var finalResult = Number(rounded + 'e-' + precision).toFixed(precision);
+		return finalResult;
+	}
 
-    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.checkValidity(value, rate, 1);
-    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.checkValidity(value, rate, 2);
+  render() {
+    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
+
+    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.check(value, rate);
+    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.check(value, rate);
 
     return (
       <div className='currencyConverterContainer'>
@@ -195,7 +242,9 @@ export default class CurrencyConverter extends Component {
   					onChange={this.updateValue}
   					onCurrencyChange={this.updateCurrency}
             focus={true}
-            />
+						getSymbolBaseData={this.getSymbolBaseData}
+						symbol={symbolBase}
+					/>
 
           <CurrencyForm
             position={2}
@@ -206,11 +255,13 @@ export default class CurrencyConverter extends Component {
             onChange={this.updateValue}
             onCurrencyChange={this.updateCurrency}
             focus={false}
+						getSymbolToConvertToData={this.getSymbolToConvertToData}
+						symbol={symbolToConvertTo}
           />
 
         <section className='conversionInfo'>
-            <p>Exchange Rate: {rate}</p>
-          </section>
+          <p>Exchange Rate: {rate}</p>
+        </section>
       </div>
      )
   }
