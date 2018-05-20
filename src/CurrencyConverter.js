@@ -150,16 +150,19 @@ export default class CurrencyConverter extends Component {
 		let splitInput = input.split();
 		let length = splitInput[0].length;
 
-		if(length === 0){
-						input = value.replace(/\D/g,'');
-		}else if(length < 3){
-						input = '.0' + input;
-		}else if(length === 3){
-						input = '.' + input;
-		}else if(length === 3){
-						input = input.substring(0, length - 1) + '.' + input.substring(length-1, length);
-		}else if (length > 3){
-			input = input.substring(0, length - 2) + '.' + input.substring(length-2, length);
+		let inputValue = parseFloat(input);
+
+		if((length === 0) && (inputValue < 100)){
+			input = value.replace(/\D/g,'');
+		}else if((length === 1) && (inputValue < 100)){
+			input = '.0' + input;
+		}else if((length === 3) && (inputValue < 100)){
+			console.log('input length 3 less than 100', typeof input, input.length, input)
+			input = input.substring(0, 2) + '.' + input.substring(2, length);
+		}else if((length === 3) && (inputValue > 100)){
+			input = (input.substring(0, length - 1) + '.' + input.substring(length-1, length)).replace(/^0+/, '');
+		}else if ((length > 3) && (inputValue > 100)){
+			input = (input.substring(0, length - 2) + '.' + input.substring(length-2, length)).replace(/^0+/, '');
 		}
 		return input;
 	}
