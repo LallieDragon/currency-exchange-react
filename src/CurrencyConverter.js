@@ -16,7 +16,7 @@ class CurrencyForm extends Component {
   constructor(props) {
     super(props);
 		this.state = {
-			symbolOneData: ''
+			symbolData: ''
 		}
     this.handleClick = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -27,7 +27,7 @@ class CurrencyForm extends Component {
     fetch('https://gist.githubusercontent.com/mddenton/062fa4caf150bdf845994fc7a3533f74/raw/27beff3509eff0d2690e593336179d4ccda530c2/Common-Currency.json')
       .then(currencyData => currencyData.json())
       .then(currencyData => {
-        this.setState({ symbolOneData: currencyData })
+        this.setState({ symbolData: currencyData })
       })
       .catch(err => console.log('Error in component will mount form', err))
   }
@@ -42,7 +42,7 @@ class CurrencyForm extends Component {
 
   handleCurrencyChange(e) {
     let value = e.target.value
-		let symbolData = this.state.symbolOneData[value];
+		let symbolData = this.state.symbolData[value];
 
     this.props.onCurrencyChange(value, this.props.position);
 
@@ -105,7 +105,6 @@ export default class CurrencyConverter extends Component {
       outputCurrency: '?',
       rate: 0,
       value: 0,
-			initialValue: '',
 			symbolBase: '€',
 			symbolToConvertTo: '$'
     }
@@ -150,16 +149,19 @@ export default class CurrencyConverter extends Component {
 
 		let inputValueAsInt = parseFloat(input);
 
+		console.log(input.length)
 		if ((length === 0) && (inputValueAsInt < 100)) {
 			input = value.replace(/\D/g,'');
 		} else if ((length === 1) && (inputValueAsInt < 100)) {
-			input = '.0' + input;
+			input = ('.0' + input).replace(/^0+/, '');
 		} else if ((length === 3) && (inputValueAsInt < 100)) {
-			input = input.substring(0, 1) + '.' + input.substring(1, length);
+			input = (input.substring(0, 1) + '.' + input.substring(1, length)).replace(/^0+/, '');
 		} else if ((length === 3) && (inputValueAsInt > 100)){
 			input = (input.substring(0, length - 1) + '.' + input.substring(length - 1, length)).replace(/^0+/, '');
 		} else if ((length > 3) && (inputValueAsInt > 100)){
 			input = (input.substring(0, length - 2) + '.' + input.substring(length - 2, length)).replace(/^0+/, '');
+		} else if ((length > 3) && (inputValueAsInt < 100)) {
+			input = ('.0' + (input).replace(/^0+/, ''));
 		}
 		return input;
 	}
@@ -204,7 +206,7 @@ export default class CurrencyConverter extends Component {
 
   updateCurrency(currency, position) {
     this.setState({
-      value: '0',
+      value: 0,
       rate: 0,
       inputCurrency: '',
       outputCurrency: ''
@@ -218,10 +220,11 @@ export default class CurrencyConverter extends Component {
   }
 
   render() {
-    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
+    const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state;
+		const { getSymbolBaseData, getSymbolToConvertToData, updateConversion, updateCurrency, updateValue } = this;
 
-    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.beginConversion(value, rate);
-    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.beginConversion(value, rate);
+	  const valueToConvertFrom = defaultCurrencyBase === inputCurrency ? value : this.beginConversion(value, rate);
+    const valueToConvertTo = defaultCurrencyToConvertTo === inputCurrency ? value : this.beginConversion(value, rate);
 
     return (
       <div className='currencyConverterContainer'>
@@ -230,12 +233,12 @@ export default class CurrencyConverter extends Component {
   					position={1}
   					currencies={currencies}
   					selected={defaultCurrencyBase}
-  					value={valueOne}
-  					onClick={this.updateConversion}
-  					onChange={this.updateValue}
-  					onCurrencyChange={this.updateCurrency}
+  					value={valueToConvertFrom}
+  					onClick={updateConversion}
+  					onChange={updateValue}
+  					onCurrencyChange={updateCurrency}
             focus={true}
-						getSymbolBaseData={this.getSymbolBaseData}
+						getSymbolBaseData={getSymbolBaseData}
 						symbol={symbolBase}
 					/>
 
@@ -243,12 +246,12 @@ export default class CurrencyConverter extends Component {
             position={2}
             currencies={currencies}
             selected={defaultCurrencyToConvertTo}
-            value={valueTwo}
-            onClick={this.updateConversion}
-            onChange={this.updateValue}
-            onCurrencyChange={this.updateCurrency}
+            value={valueToConvertTo}
+            onClick={updateConversion}
+            onChange={updateValue}
+            onCurrencyChange={updateCurrency}
             focus={false}
-						getSymbolToConvertToData={this.getSymbolToConvertToData}
+						getSymbolToConvertToData={getSymbolToConvertToData}
 						symbol={symbolToConvertTo}
           />
 
