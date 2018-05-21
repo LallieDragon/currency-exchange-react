@@ -20,7 +20,7 @@ class CurrencyForm extends Component {
 		}
     this.handleClick = this.handleClick.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.handleCurrencyChange = this.handleCurrencyChange.bind(this)
+    this.handleCurrencyChange = this.handleCurrencyChange.bind(this);
   }
 
 	componentWillMount() {
@@ -51,9 +51,8 @@ class CurrencyForm extends Component {
     }
 
     if (this.props.getSymbolToConvertToData) {
-      this.props.getSymbolToConvertToData(symbolData)
+      this.props.getSymbolToConvertToData(symbolData);
     }
-
   }
 
   render() {
@@ -110,7 +109,7 @@ export default class CurrencyConverter extends Component {
 			symbolBase: '€',
 			symbolToConvertTo: '$'
     }
-    this.check = this.check.bind(this);
+    this.beginConversion = this.beginConversion.bind(this);
 		this.format = this.format.bind(this);
 		this.getSymbolBaseData = this.getSymbolBaseData.bind(this);
 		this.getSymbolToConvertToData = this.getSymbolToConvertToData.bind(this);
@@ -134,7 +133,7 @@ export default class CurrencyConverter extends Component {
       .catch(err => console.log('Error in component will mount', err))
   }
 
-  check(value, rate) {
+  beginConversion(value, rate) {
 		let input = this.format(value.toString());
 
 		const variable = parseFloat(input);
@@ -150,19 +149,18 @@ export default class CurrencyConverter extends Component {
 		let splitInput = input.split();
 		let length = splitInput[0].length;
 
-		let inputValue = parseFloat(input);
+		let inputValueAsInt = parseFloat(input);
 
-		if((length === 0) && (inputValue < 100)){
+		if((length === 0) && (inputValueAsInt < 100)){
 			input = value.replace(/\D/g,'');
-		}else if((length === 1) && (inputValue < 100)){
+		}else if((length === 1) && (inputValueAsInt < 100)){
 			input = '.0' + input;
-		}else if((length === 3) && (inputValue < 100)){
-			console.log('input length 3 less than 100', typeof input, input.length, input)
-			input = input.substring(0, 2) + '.' + input.substring(2, length);
-		}else if((length === 3) && (inputValue > 100)){
-			input = (input.substring(0, length - 1) + '.' + input.substring(length-1, length)).replace(/^0+/, '');
-		}else if ((length > 3) && (inputValue > 100)){
-			input = (input.substring(0, length - 2) + '.' + input.substring(length-2, length)).replace(/^0+/, '');
+		}else if((length === 3) && (inputValueAsInt < 100)){
+			input = input.substring(0, 1) + '.' + input.substring(1, length);
+		}else if((length === 3) && (inputValueAsInt > 100)){
+			input = (input.substring(0, length - 1) + '.' + input.substring(length - 1, length)).replace(/^0+/, '');
+		}else if ((length > 3) && (inputValueAsInt > 100)){
+			input = (input.substring(0, length - 2) + '.' + input.substring(length - 2, length)).replace(/^0+/, '');
 		}
 		return input;
 	}
@@ -230,8 +228,8 @@ export default class CurrencyConverter extends Component {
   render() {
     const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
 
-    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.check(value, rate);
-    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.check(value, rate);
+    const valueOne = defaultCurrencyBase === inputCurrency ? value : this.beginConversion(value, rate);
+    const valueTwo = defaultCurrencyToConvertTo === inputCurrency ? value : this.beginConversion(value, rate);
 
     return (
       <div className='currencyConverterContainer'>
