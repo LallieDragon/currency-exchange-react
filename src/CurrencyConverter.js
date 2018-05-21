@@ -117,7 +117,6 @@ export default class CurrencyConverter extends Component {
     this.updateConversion = this.updateConversion.bind(this);
     this.updateCurrency = this.updateCurrency.bind(this);
     this.updateValue = this.updateValue.bind(this);
-		this.toFixed = this.toFixed.bind(this);
   }
 
   componentWillMount() {
@@ -151,15 +150,15 @@ export default class CurrencyConverter extends Component {
 
 		let inputValueAsInt = parseFloat(input);
 
-		if((length === 0) && (inputValueAsInt < 100)){
+		if ((length === 0) && (inputValueAsInt < 100)) {
 			input = value.replace(/\D/g,'');
-		}else if((length === 1) && (inputValueAsInt < 100)){
+		} else if ((length === 1) && (inputValueAsInt < 100)) {
 			input = '.0' + input;
-		}else if((length === 3) && (inputValueAsInt < 100)){
+		} else if ((length === 3) && (inputValueAsInt < 100)) {
 			input = input.substring(0, 1) + '.' + input.substring(1, length);
-		}else if((length === 3) && (inputValueAsInt > 100)){
+		} else if ((length === 3) && (inputValueAsInt > 100)){
 			input = (input.substring(0, length - 1) + '.' + input.substring(length - 1, length)).replace(/^0+/, '');
-		}else if ((length > 3) && (inputValueAsInt > 100)){
+		} else if ((length > 3) && (inputValueAsInt > 100)){
 			input = (input.substring(0, length - 2) + '.' + input.substring(length - 2, length)).replace(/^0+/, '');
 		}
 		return input;
@@ -217,13 +216,6 @@ export default class CurrencyConverter extends Component {
       this.setState({ defaultCurrencyToConvertTo: currency })
     }
   }
-
-	toFixed(value, precision) {
-		var exponentialForm = this.unformat(value) + 'e' + precision;
-		var rounded = Math.round(exponentialForm);
-		var finalResult = Number(rounded + 'e-' + precision).toFixed(precision);
-		return finalResult;
-	}
 
   render() {
     const { currencies, defaultCurrencyBase, defaultCurrencyToConvertTo, inputCurrency, rate, value, symbolBase, symbolToConvertTo } = this.state
